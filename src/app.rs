@@ -98,20 +98,22 @@ fn human_readable_size(size: u64) -> String {
     )
 }
 
+fn remove_file(path: &str) -> bool {
+    if let Err(e) = fs::remove_file(path) {
+        if e.kind() != ErrorKind::NotFound {
+            println!("Failed to remove '{path}': {e}");
+            return false;
+        }
+    }
+    true
+}
+
 fn remove_package(cachedir: &str, name: &str) {
     let mut path = String::from_iter([cachedir, path::MAIN_SEPARATOR_STR, &name]);
 
-    if let Err(e) = fs::remove_file(&path) {
-        println!("Failed to remove '{path}': {e}");
-        return;
-    }
-
-    path.push_str(".sig");
-
-    if let Err(e) = fs::remove_file(&path) {
-        if e.kind() != ErrorKind::NotFound {
-            println!("Failed to remove '{path}': {e}");
-        }
+    if remove_file(&path) {
+        path.push_str(".sig");
+        remove_file(&path);
     }
 }
 
