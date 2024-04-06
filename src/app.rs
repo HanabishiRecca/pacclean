@@ -98,12 +98,12 @@ fn human_readable_size(size: u64) -> String {
     )
 }
 
-fn remove_package(cachedir: &str, name: &str) -> bool {
+fn remove_package(cachedir: &str, name: &str) {
     let mut path = String::from_iter([cachedir, path::MAIN_SEPARATOR_STR, &name]);
 
     if let Err(e) = fs::remove_file(&path) {
         println!("Failed to remove '{path}': {e}");
-        return false;
+        return;
     }
 
     path.push_str(".sig");
@@ -113,8 +113,6 @@ fn remove_package(cachedir: &str, name: &str) -> bool {
             println!("Failed to remove '{path}': {e}");
         }
     }
-
-    true
 }
 
 pub fn run() -> R<()> {
@@ -130,32 +128,33 @@ pub fn run() -> R<()> {
         return Ok(());
     }
 
-    println!("The following packages will be removed:");
+    println!("Out of sync packages:");
     println!();
 
+    let mut total = 0;
+
     for (name, size) in &files {
+        total += size;
         println!("{name} ({})", human_readable_size(*size));
     }
 
     println!();
+    println!(
+        "Total packages to remove: {} ({})",
+        files.len(),
+        human_readable_size(total)
+    );
     print!(":: Do you want to proceed? ");
 
     if !read_answer()? {
         return Ok(());
     }
 
-    println!("removing old packages from cache...");
+    println!("Removing out of sync packages from the cache...");
 
-    let mut count = 0;
-    let mut total = 0;
-
-    for (name, size) in &files {
-        if remove_package(cachedir, name) {
-            count += 1;
-            total += size;
-        }
+    for (name, _) in &files {
+        remove_package(cachedir, name);
     }
 
-    println!("Removed packages: {count} ({})", human_readable_size(total));
     Ok(())
 }
