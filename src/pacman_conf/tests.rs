@@ -1,9 +1,8 @@
 use super::read_config;
-use crate::error::R;
-use std::io::{BufReader, Cursor};
+use std::io::{BufReader, Cursor, Result};
 
 #[test]
-fn config() -> R<()> {
+fn config() -> Result<()> {
     let reader = BufReader::new(Cursor::new(include_bytes!("test_config.in")));
     let conf = read_config(reader)?;
     assert_eq!(conf.dbpath.as_deref(), Some("/var/lib/pacman/"));
@@ -12,7 +11,7 @@ fn config() -> R<()> {
 }
 
 #[test]
-fn config_no_dbpath() -> R<()> {
+fn config_no_dbpath() -> Result<()> {
     let reader = BufReader::new(Cursor::new(include_bytes!("test_config_no_dbpath.in")));
     let conf = read_config(reader)?;
     assert!(conf.dbpath.is_none());
@@ -21,7 +20,7 @@ fn config_no_dbpath() -> R<()> {
 }
 
 #[test]
-fn config_empty() -> R<()> {
+fn config_empty() -> Result<()> {
     let reader = BufReader::new(Cursor::new([]));
     let conf = read_config(reader)?;
     assert!(conf.dbpath.is_none());

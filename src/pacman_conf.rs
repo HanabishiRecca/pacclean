@@ -1,11 +1,9 @@
 use std::{
     fs::File,
-    io::{BufRead, BufReader, Error as IOError},
+    io::{BufRead, BufReader, Result},
 };
 
-use crate::error::R;
-
-fn get_file(path: &str) -> Result<File, IOError> {
+fn get_file(path: &str) -> Result<File> {
     File::open(path)
 }
 
@@ -28,7 +26,7 @@ pub struct PacmanConf {
     pub repos: Vec<String>,
 }
 
-fn read_config(mut reader: impl BufRead) -> R<PacmanConf> {
+fn read_config(mut reader: impl BufRead) -> Result<PacmanConf> {
     let mut line = String::new();
     let mut in_options = false;
     let mut dbpath = None;
@@ -83,7 +81,7 @@ fn read_config(mut reader: impl BufRead) -> R<PacmanConf> {
     })
 }
 
-pub fn get_configuration(path: &str) -> R<PacmanConf> {
+pub fn get_configuration(path: &str) -> Result<PacmanConf> {
     read_config(BufReader::new(get_file(path)?))
 }
 
