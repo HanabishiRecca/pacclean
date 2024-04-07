@@ -12,24 +12,24 @@ use std::{error::Error, process::ExitCode};
 
 type R<T> = Result<T, Box<dyn Error>>;
 
-pub fn find_packages_to_purge(
+pub fn filter_pkgs(
     dbpath: &str,
     cachedir: &str,
-    repos: Vec<String>,
+    repos: &[impl AsRef<str>],
 ) -> R<Vec<(String, u64)>> {
-    let mut files = io::get_cached_pkgs(cachedir)?;
-    let alpm = alpm::init_alpm(dbpath)?;
-    let dbs = alpm::load_dbs(&alpm, repos.into_iter())?;
+    let mut pkgs = io::get_cached_pkgs(cachedir)?;
+    let alpm = alpm::init(dbpath)?;
+    let dbs = alpm::load_dbs(&alpm, repos)?;
 
     for db in dbs {
         for pkg in db.pkgs() {
             if let Some(name) = pkg.filename() {
-                files.remove(name);
+                pkgs.remove(name);
             }
         }
     }
 
-    let mut files: Vec<_> = files.into_iter().collect();
+    let mut files: Vec<_> = pkgs.into_iter().collect();
     files.sort_unstable();
     Ok(files)
 }
@@ -38,11 +38,11 @@ fn run() -> R<()> {
     let conf = pacman_conf::get_configuration(PACMAN_CONF)?;
     let dbpath = conf.dbpath.as_deref().unwrap_or(DEFAULT_DBPATH);
     let cachedir = conf.cachedir.as_deref().unwrap_or(DEFAULT_CACHEDIR);
-    let files = find_packages_to_purge(dbpath, cachedir, conf.repos)?;
+    let pkgs = &filter_pkgs(dbpath, cachedir, &conf.repos)?;
 
     println!("Cache directory: {cachedir}");
 
-    if files.is_empty() {
+    if pkgs.is_empty() {
         println!("No packages to remove.");
         return Ok(());
     }
@@ -52,7 +52,7 @@ fn run() -> R<()> {
 
     let mut total = 0;
 
-    for (name, size) in &files {
+    for (name, size) in pkgs {
         total += size;
         println!("{name} ({})", ByteFormat(*size));
     }
@@ -60,7 +60,7 @@ fn run() -> R<()> {
     println!();
     println!(
         "Total packages to remove: {} ({})",
-        files.len(),
+        pkgs.len(),
         ByteFormat(total)
     );
     print!(":: Do you want to proceed? [Y/n] ");
@@ -71,8 +71,8 @@ fn run() -> R<()> {
 
     println!("Removing out of sync packages from the cache...");
 
-    for (name, _) in &files {
-        io::remove_package(cachedir, name);
+    for (name, _) in pkgs {
+        io::remove_pkg(cachedir, name);
     }
 
     Ok(())

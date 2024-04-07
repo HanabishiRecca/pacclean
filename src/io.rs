@@ -5,7 +5,7 @@ use std::{
     path,
 };
 
-fn is_pkg_file(name: &str) -> bool {
+fn is_pkg(name: &str) -> bool {
     name.contains(".pkg.tar") && name.split('.').next_back() != Some("sig")
 }
 
@@ -15,7 +15,7 @@ pub fn get_cached_pkgs(cachedir: &str) -> Result<HashMap<String, u64>> {
         .filter_map(|entry| {
             let name = entry.file_name().into_string().ok()?;
             let meta = entry.metadata().ok()?;
-            (meta.is_file() && is_pkg_file(&name)).then_some((name, meta.len()))
+            (meta.is_file() && is_pkg(&name)).then_some((name, meta.len()))
         })
         .collect())
 }
@@ -38,7 +38,7 @@ fn remove_file(path: &str) -> bool {
     true
 }
 
-pub fn remove_package(cachedir: &str, name: &str) {
+pub fn remove_pkg(cachedir: &str, name: &str) {
     let mut path = String::from_iter([cachedir, path::MAIN_SEPARATOR_STR, &name]);
 
     if remove_file(&path) {
