@@ -5,10 +5,10 @@ pub fn init(dbpath: &str) -> Result<Alpm> {
 
     alpm.set_event_cb((), |e, _| {
         if let Event::DatabaseMissing(event) = e.event() {
-            println!(
+            crate::io::print_warning(format_args!(
                 "database file for '{}' does not exist (use 'pacman -Sy' to download)",
                 event.dbname()
-            )
+            ))
         }
     });
 

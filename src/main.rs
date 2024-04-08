@@ -7,7 +7,6 @@ mod byte_format;
 mod io;
 mod pacman_conf;
 
-use byte_format::ByteFormat;
 use std::{error::Error, process::ExitCode};
 
 type R<T> = Result<T, Box<dyn Error>>;
@@ -35,41 +34,38 @@ pub fn filter_pkgs(
 }
 
 fn run() -> R<()> {
+    io::print_message("checking for outdated packages...");
+
     let conf = pacman_conf::get_configuration(PACMAN_CONF)?;
     let dbpath = conf.dbpath.as_deref().unwrap_or(DEFAULT_DBPATH);
     let cachedir = conf.cachedir.as_deref().unwrap_or(DEFAULT_CACHEDIR);
     let pkgs = &filter_pkgs(dbpath, cachedir, &conf.repos)?;
 
-    println!("Cache directory: {cachedir}");
-
     if pkgs.is_empty() {
-        println!("No packages to remove.");
+        io::print_message("no outdated packages");
         return Ok(());
     }
 
-    println!("Out of sync packages:");
     println!();
-
     let mut total = 0;
 
     for (name, size) in pkgs {
         total += size;
-        println!("{name} ({})", ByteFormat(*size));
+        io::print_pkg(name, *size);
     }
 
     println!();
-    println!(
-        "Total packages to remove: {} ({})",
-        pkgs.len(),
-        ByteFormat(total)
+    io::print_pkg(
+        format_args!("Total packages to remove: {}", pkgs.len()),
+        total,
     );
-    print!(":: Do you want to proceed? [Y/n] ");
+    println!();
 
-    if !io::read_answer()? {
+    if !io::make_request("Proceed with removing?")? {
         return Ok(());
     }
 
-    println!("Removing out of sync packages from the cache...");
+    io::print_message("removing outdated packages...");
 
     for (name, _) in pkgs {
         io::remove_pkg(cachedir, name);
@@ -81,7 +77,7 @@ fn run() -> R<()> {
 fn main() -> ExitCode {
     match run() {
         Err(e) => {
-            println!("{e}");
+            io::print_error(e);
             ExitCode::FAILURE
         }
         _ => ExitCode::SUCCESS,
