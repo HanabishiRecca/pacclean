@@ -66,5 +66,5 @@ pub fn print_error(e: impl Display) {
 }
 
 pub fn print_warning(w: impl Display) {
-    eprintln!("\x1b[33m;1mwarning:\x1b[0m {w}\x1b[0m");
+    eprintln!("\x1b[33;1mwarning:\x1b[0m {w}\x1b[0m");
 }
