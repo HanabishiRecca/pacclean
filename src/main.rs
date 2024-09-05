@@ -1,11 +1,10 @@
-const PACMAN_CONF: &str = "/etc/pacman.conf";
-const DEFAULT_DBPATH: &str = "/var/lib/pacman/";
-const DEFAULT_CACHEDIR: &str = "/var/cache/pacman/pkg/";
+const DEFAULT_DBPATH: &str = "/var/lib/pacman";
+const DEFAULT_CACHEDIR: &str = "/var/cache/pacman/pkg";
+const DEFAULT_REPOS: &[&str] = &["core", "extra"];
 
 mod alpm;
 mod byte_format;
 mod io;
-mod pacman_conf;
 
 use std::{error::Error, process::ExitCode};
 
@@ -36,10 +35,10 @@ pub fn filter_pkgs(
 fn run() -> R<()> {
     io::print_message("checking for outdated packages...");
 
-    let conf = pacman_conf::get_configuration(PACMAN_CONF)?;
-    let dbpath = conf.dbpath.as_deref().unwrap_or(DEFAULT_DBPATH);
-    let cachedir = conf.cachedir.as_deref().unwrap_or(DEFAULT_CACHEDIR);
-    let pkgs = &filter_pkgs(dbpath, cachedir, &conf.repos)?;
+    let dbpath = DEFAULT_DBPATH;
+    let cachedir = DEFAULT_CACHEDIR;
+    let repos = DEFAULT_REPOS;
+    let pkgs = &filter_pkgs(dbpath, cachedir, repos)?;
 
     if pkgs.is_empty() {
         io::print_message("no outdated packages");
