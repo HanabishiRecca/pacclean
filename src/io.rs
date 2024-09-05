@@ -12,14 +12,28 @@ fn is_pkg(name: &str) -> bool {
 }
 
 pub fn get_cached_pkgs(cachedir: &str) -> Result<HashMap<String, u64>> {
-    Ok(fs::read_dir(cachedir)?
-        .flatten()
-        .filter_map(|entry| {
-            let name = entry.file_name().into_string().ok()?;
-            let meta = entry.metadata().ok()?;
-            (meta.is_file() && is_pkg(&name)).then_some((name, meta.len()))
-        })
-        .collect())
+    let mut pkgs = HashMap::new();
+
+    for entry in fs::read_dir(cachedir)? {
+        let entry = entry?;
+
+        let Ok(name) = entry.file_name().into_string() else {
+            continue;
+        };
+
+        if !is_pkg(&name) {
+            continue;
+        }
+
+        let meta = entry.metadata()?;
+        if !meta.is_file() {
+            continue;
+        }
+
+        pkgs.insert(name, meta.len());
+    }
+
+    Ok(pkgs)
 }
 
 fn remove_file(path: &str) -> bool {
