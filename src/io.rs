@@ -33,7 +33,7 @@ fn remove_file(path: &str) -> bool {
 }
 
 pub fn remove_pkg(cachedir: &str, name: &str) {
-    let mut path = String::from_iter([cachedir, path::MAIN_SEPARATOR_STR, &name]);
+    let mut path = String::from_iter([cachedir, path::MAIN_SEPARATOR_STR, name]);
 
     if remove_file(&path) {
         path.push_str(".sig");
