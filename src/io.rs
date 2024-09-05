@@ -7,6 +7,38 @@ use std::{
     path,
 };
 
+const DB_EXT: &str = ".db";
+
+fn is_db(name: &str) -> bool {
+    name.len() > DB_EXT.len() && name.ends_with(DB_EXT)
+}
+
+pub fn find_repos(dbpath: &str) -> Result<Vec<String>> {
+    let path = String::from_iter([dbpath, path::MAIN_SEPARATOR_STR, "sync"]);
+    let mut repos = Vec::new();
+
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+
+        let Ok(mut name) = entry.file_name().into_string() else {
+            continue;
+        };
+
+        if !is_db(&name) {
+            continue;
+        }
+
+        if !entry.metadata()?.is_file() {
+            continue;
+        }
+
+        name.truncate(name.len() - DB_EXT.len());
+        repos.push(name);
+    }
+
+    Ok(repos)
+}
+
 fn is_pkg(name: &str) -> bool {
     name.contains(".pkg.tar") && name.split('.').next_back() != Some("sig")
 }

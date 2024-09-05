@@ -1,6 +1,5 @@
 const DEFAULT_DBPATH: &str = "/var/lib/pacman";
 const DEFAULT_CACHEDIR: &str = "/var/cache/pacman/pkg";
-const DEFAULT_REPOS: &[&str] = &["core", "extra"];
 
 mod alpm;
 mod byte_format;
@@ -37,7 +36,7 @@ fn run() -> R<()> {
 
     let dbpath = DEFAULT_DBPATH;
     let cachedir = DEFAULT_CACHEDIR;
-    let repos = DEFAULT_REPOS;
+    let repos = &io::find_repos(DEFAULT_DBPATH)?;
     let pkgs = &filter_pkgs(dbpath, cachedir, repos)?;
 
     if pkgs.is_empty() {
