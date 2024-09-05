@@ -1,19 +1,16 @@
-const DEFAULT_DBPATH: &str = "/var/lib/pacman";
-const DEFAULT_CACHEDIR: &str = "/var/cache/pacman/pkg";
-
 mod alpm;
 mod byte_format;
+mod cli;
 mod io;
 
 use std::{error::Error, process::ExitCode};
 
 type R<T> = Result<T, Box<dyn Error>>;
 
-pub fn filter_pkgs(
-    dbpath: &str,
-    cachedir: &str,
-    repos: &[impl AsRef<str>],
-) -> R<Vec<(String, u64)>> {
+const DEFAULT_CACHEDIR: &str = "/var/cache/pacman/pkg";
+const DEFAULT_DBPATH: &str = "/var/lib/pacman";
+
+fn filter_pkgs(cachedir: &str, dbpath: &str, repos: &[impl AsRef<str>]) -> R<Vec<(String, u64)>> {
     let mut pkgs = io::get_cached_pkgs(cachedir)?;
     let alpm = alpm::init(dbpath)?;
     let dbs = alpm::load_dbs(&alpm, repos)?;
@@ -31,13 +28,31 @@ pub fn filter_pkgs(
     Ok(files)
 }
 
+fn print_help() {
+    let bin = std::env::current_exe().ok();
+    println!(
+        include_str!("help.in"),
+        PKG = env!("CARGO_PKG_NAME"),
+        VER = env!("CARGO_PKG_VERSION"),
+        BIN_NAME = (|| bin.as_ref()?.file_name()?.to_str())().unwrap_or(env!("CARGO_BIN_NAME")),
+    );
+}
+
 fn run() -> R<()> {
+    let Some(config) = cli::read_args(std::env::args().skip(1))? else {
+        print_help();
+        return Ok(());
+    };
+
     io::print_message("checking for outdated packages...");
 
-    let dbpath = DEFAULT_DBPATH;
-    let cachedir = DEFAULT_CACHEDIR;
-    let repos = &io::find_repos(DEFAULT_DBPATH)?;
-    let pkgs = &filter_pkgs(dbpath, cachedir, repos)?;
+    let cachedir = config.cachedir().unwrap_or(DEFAULT_CACHEDIR);
+    let dbpath = config.dbpath().unwrap_or(DEFAULT_DBPATH);
+    let repos = match config.repos() {
+        Some(repos) => repos,
+        _ => &io::find_repos(DEFAULT_DBPATH)?,
+    };
+    let pkgs = &filter_pkgs(cachedir, dbpath, repos)?;
 
     if pkgs.is_empty() {
         io::print_message("no outdated packages");

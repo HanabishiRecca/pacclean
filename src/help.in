@@ -1,0 +1,16 @@
+[1m{PKG} [32m{VER}[0m
+Arch [1mpacman -Sc[0m with [1mCleanMethod = KeepCurrent[0m analogue, but more verbose and faster.
+
+Usage:
+
+    [1m$ {BIN_NAME} [<option>...][0m
+
+Options:
+
+  [1m-c[0m, [1m--cachedir[0m    set [1mCacheDir[0m [1]
+  [1m-d[0m, [1m--dbpath[0m      set [1mDBPath[0m [1]
+  [1m-r[0m, [1m--repos[0m       override repository list [2]
+  [1m-h[0m, [1m--help[0m        display help message and exit
+
+1. Use if you have non-default values set by [1mpacman.conf[0m.
+2. List names separated by a comma. If not specified, the app uses all repositories from [1mDBPath/sync[0m directory.
