@@ -50,7 +50,7 @@ fn run() -> R<()> {
     let dbpath = config.dbpath().unwrap_or(DEFAULT_DBPATH);
     let repos = match config.repos() {
         Some(repos) => repos,
-        _ => &io::find_repos(DEFAULT_DBPATH)?,
+        _ => &io::find_repos(dbpath)?,
     };
     let pkgs = &filter_pkgs(cachedir, dbpath, repos)?;
 
