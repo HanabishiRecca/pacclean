@@ -7,10 +7,9 @@ Usage:
 
 Options:
 
-  [1m-c[0m, [1m--cachedir[0m    set [1mCacheDir[0m [1]
-  [1m-d[0m, [1m--dbpath[0m      set [1mDBPath[0m [1]
-  [1m-r[0m, [1m--repos[0m       override repository list [2]
-  [1m-h[0m, [1m--help[0m        display help message and exit
+      [1m--cachedir <path>[0m    alternate package cache location
+      [1m--dbpath <path>[0m      alternate database location
+      [1m--repos <names>[0m      override working repositories [1]
+  [1m-h[0m, [1m--help[0m               display the help message
 
-1. Use if you have non-default values set by [1mpacman.conf[0m.
-2. List names separated by a comma. If not specified, the app uses all repositories from [1mDBPath/sync[0m directory.
+1. Multiple values could be specified using a comma-separated list.
