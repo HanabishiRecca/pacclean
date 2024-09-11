@@ -2,15 +2,18 @@ mod alpm;
 mod byte_format;
 mod cli;
 mod io;
+mod print;
+mod types;
 
-use std::{error::Error, process::ExitCode};
+use crate::types::{Arr, Str};
+use std::{env, error::Error, process::ExitCode};
 
 type R<T> = Result<T, Box<dyn Error>>;
 
 const DEFAULT_CACHEDIR: &str = "/var/cache/pacman/pkg";
 const DEFAULT_DBPATH: &str = "/var/lib/pacman";
 
-fn filter_pkgs(cachedir: &str, dbpath: &str, repos: &[impl AsRef<str>]) -> R<Vec<(String, u64)>> {
+fn filter_pkgs(cachedir: &str, dbpath: &str, repos: &[impl AsRef<str>]) -> R<Arr<(Str, u64)>> {
     let mut pkgs = io::get_cached_pkgs(cachedir)?;
     let alpm = alpm::init(dbpath)?;
     let dbs = alpm::load_dbs(&alpm, repos)?;
@@ -23,13 +26,13 @@ fn filter_pkgs(cachedir: &str, dbpath: &str, repos: &[impl AsRef<str>]) -> R<Vec
         }
     }
 
-    let mut files: Vec<_> = pkgs.into_iter().collect();
+    let mut files: Arr<_> = pkgs.into_iter().collect();
     files.sort_unstable();
     Ok(files)
 }
 
 fn print_help() {
-    let bin = std::env::current_exe().ok();
+    let bin = env::current_exe().ok();
     println!(
         include_str!("help.in"),
         PKG = env!("CARGO_PKG_NAME"),
@@ -39,23 +42,23 @@ fn print_help() {
 }
 
 fn run() -> R<()> {
-    let Some(config) = cli::read_args(std::env::args().skip(1))? else {
+    let Some(config) = cli::read_args(env::args().skip(1))? else {
         print_help();
         return Ok(());
     };
 
-    io::print_message("checking for outdated packages...");
+    print::message("checking for outdated packages...");
 
     let cachedir = config.cachedir().unwrap_or(DEFAULT_CACHEDIR);
     let dbpath = config.dbpath().unwrap_or(DEFAULT_DBPATH);
-    let repos = match config.repos() {
-        Some(repos) => repos,
-        _ => &io::find_repos(dbpath)?,
+
+    let pkgs = match config.repos() {
+        Some(repos) => &filter_pkgs(cachedir, dbpath, repos)?,
+        _ => &filter_pkgs(cachedir, dbpath, &io::find_repos(dbpath)?)?,
     };
-    let pkgs = &filter_pkgs(cachedir, dbpath, repos)?;
 
     if pkgs.is_empty() {
-        io::print_message("no outdated packages");
+        print::message("no outdated packages");
         return Ok(());
     }
 
@@ -64,21 +67,21 @@ fn run() -> R<()> {
 
     for (name, size) in pkgs {
         total += size;
-        io::print_pkg(name, *size);
+        print::pkg(name, *size);
     }
 
     println!();
-    io::print_pkg(
+    print::pkg(
         format_args!("Total packages to remove: {}", pkgs.len()),
         total,
     );
     println!();
 
-    if !io::make_request("Proceed with removing?")? {
+    if !print::request("Proceed with removing?")? {
         return Ok(());
     }
 
-    io::print_message("removing outdated packages...");
+    print::message("removing outdated packages...");
 
     for (name, _) in pkgs {
         io::remove_pkg(cachedir, name);
@@ -90,7 +93,7 @@ fn run() -> R<()> {
 fn main() -> ExitCode {
     match run() {
         Err(e) => {
-            io::print_error(e);
+            print::error(e);
             ExitCode::FAILURE
         }
         _ => ExitCode::SUCCESS,

@@ -1,32 +1,15 @@
-macro_rules! E {
-    ($e: expr) => {
-        return Err($e.into())
-    };
-}
+mod error;
+#[cfg(test)]
+mod tests;
 
-#[derive(Debug)]
-pub enum Error {
-    NoValue(String),
-    Unknown(String),
-}
-
-impl std::error::Error for Error {}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        use Error::*;
-        match self {
-            NoValue(arg) => write!(f, "option '{arg}' requires value"),
-            Unknown(arg) => write!(f, "unknown option '{arg}'"),
-        }
-    }
-}
+use crate::types::{Arr, Str};
+use error::Error;
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Config {
-    dbpath: Option<String>,
-    cachedir: Option<String>,
-    repos: Option<Vec<String>>,
+    dbpath: Option<Str>,
+    cachedir: Option<Str>,
+    repos: Option<Arr<Str>>,
 }
 
 impl Config {
@@ -45,13 +28,33 @@ impl Config {
     pub fn dbpath(&self) -> Option<&str> {
         self.dbpath.as_deref()
     }
-    
-    pub fn repos(&self) -> Option<&[String]> {
+
+    pub fn repos(&self) -> Option<&[impl AsRef<str>]> {
         self.repos.as_deref()
     }
 }
 
-pub fn read_args(mut args: impl Iterator<Item = String>) -> Result<Option<Config>, Error> {
+macro_rules! E {
+    ($e: expr) => {{
+        use Error::*;
+        return Err($e);
+    }};
+}
+
+fn parse_list<'a, T: FromIterator<impl From<&'a str>>>(str: &'a str) -> T {
+    str.split(',')
+        .filter(|s| !s.is_empty())
+        .map(From::from)
+        .collect()
+}
+
+macro_rules! F {
+    ($s: expr) => {
+        From::from($s.as_ref())
+    };
+}
+
+pub fn read_args(mut args: impl Iterator<Item = impl AsRef<str>>) -> Result<Option<Config>, Error> {
     let mut config = Config::new();
 
     while let Some(arg) = args.next() {
@@ -59,40 +62,32 @@ pub fn read_args(mut args: impl Iterator<Item = String>) -> Result<Option<Config
             () => {
                 match args.next() {
                     Some(value) => value,
-                    _ => E!(Error::NoValue(arg)),
+                    _ => E!(NoValue(F!(arg))),
                 }
             };
         }
-        macro_rules! collect {
+        macro_rules! list {
             () => {
-                next!()
-                    .split(',')
-                    .map(|s| s.trim())
-                    .filter(|s| !s.is_empty())
-                    .map(String::from)
-                    .collect()
+                parse_list(next!().as_ref())
             };
         }
-        match arg.as_str().trim() {
+        match arg.as_ref() {
             "" => {}
             "-c" | "--cachedir" => {
-                config.cachedir = Some(next!());
+                config.cachedir = Some(F!(next!()));
             }
             "-d" | "--dbpath" => {
-                config.dbpath = Some(next!());
+                config.dbpath = Some(F!(next!()));
             }
             "-r" | "--repos" => {
-                config.repos = Some(collect!());
+                config.repos = Some(list!());
             }
             "-h" | "--help" => {
                 return Ok(None);
             }
-            _ => E!(Error::Unknown(arg)),
+            _ => E!(Unknown(F!(arg))),
         }
     }
 
     Ok(Some(config))
 }
-
-#[cfg(test)]
-mod tests;

@@ -1,12 +1,13 @@
-use alpm::{Alpm, Db, Error, Event, Result, SigLevel};
+use crate::{print, types::Arr};
+use alpm::{Alpm, Db, Event, Result, SigLevel};
 
 pub fn init(dbpath: &str) -> Result<Alpm> {
     let alpm = Alpm::new("/", dbpath)?;
 
     alpm.set_event_cb((), |e, _| {
         if let Event::DatabaseMissing(event) = e.event() {
-            crate::io::print_warning(format_args!(
-                "database file for '{}' does not exist (use 'pacman -Sy' to download)",
+            print::warning(format_args!(
+                "database file for '{}' does not exist",
                 event.dbname()
             ))
         }
@@ -15,14 +16,9 @@ pub fn init(dbpath: &str) -> Result<Alpm> {
     Ok(alpm)
 }
 
-pub fn load_dbs<'a>(alpm: &'a Alpm, repos: &[impl AsRef<str>]) -> Result<Vec<&'a Db>> {
+pub fn load_dbs<'a>(alpm: &'a Alpm, repos: &[impl AsRef<str>]) -> Result<Arr<&'a Db>> {
     repos
         .iter()
-        .filter_map(
-            |repo| match alpm.register_syncdb(repo.as_ref(), SigLevel::NONE) {
-                Err(Error::DbNotNull) => None,
-                r => Some(r),
-            },
-        )
-        .collect::<Result<Vec<_>>>()
+        .map(|repo| alpm.register_syncdb(repo.as_ref(), SigLevel::NONE))
+        .collect()
 }
