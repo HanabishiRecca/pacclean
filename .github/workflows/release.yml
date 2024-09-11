@@ -1,0 +1,52 @@
+name: Build and upload release binaries
+run-name: Build release @ ${{ github.event.release.tag_name }}
+
+on:
+  release:
+    types:
+      - released
+
+env:
+  APP: pacclean
+  VERSION: ${{ github.event.release.tag_name }}
+  UPLOAD_URL: ${{ github.event.release.upload_url }}
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-archlinux:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      env:
+        CARGO_BUILD_TARGET: x86_64-unknown-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare
+        run: |
+          pacman -Syu --needed --noconfirm 'rust'
+          mkdir '.cargo'
+          cp -pv '.github/workflows/config.toml' -t '.cargo'
+          cargo fetch -v --locked --target "${CARGO_BUILD_TARGET}"
+
+      - name: Run tests
+        run: cargo test -v --frozen
+
+      - name: Build
+        run: cargo build -v --frozen --release
+
+      - name: Upload archive
+        run: |
+          cd "target/${CARGO_BUILD_TARGET}/release"
+          ARCHIVE="${APP}-${VERSION}-archlinux-x86_64.tar.xz"
+          tar -I 'xz -9' -cvf "${ARCHIVE}" "${APP}"
+          URL="${UPLOAD_URL%'{'*}"
+          curl -L -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/x-tar" \
+            --fail-with-body --connect-timeout 10 --retry 3 \
+            --data-binary "@${ARCHIVE}" \
+            "${URL}?name=${ARCHIVE}"
