@@ -91,13 +91,13 @@ pub fn read_args(mut args: impl Iterator<Item = impl AsRef<str>>) -> Result<Opti
         }
         match arg.as_ref() {
             "" => {}
-            "-c" | "--cachedir" => {
+            "--cachedir" => {
                 config.cachedir = Some(F!(next!()));
             }
-            "-d" | "--dbpath" => {
+            "--dbpath" => {
                 config.dbpath = Some(F!(next!()));
             }
-            "-r" | "--repos" => {
+            "--repos" => {
                 config.repos = Some(list!());
             }
             "-h" | "--help" => {
