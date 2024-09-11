@@ -2,6 +2,11 @@
 name = "pacclean"
 version = "0.1.0"
 edition = "2021"
+description = "Arch 'pacman -Sc' with 'CleanMethod = KeepCurrent' analogue, but more verbose and faster."
+repository = "https://github.com/HanabishiRecca/pacclean"
+license = "MIT"
+readme = "README.md"
+publish = false
 
 [dependencies]
 alpm = "4.0"
