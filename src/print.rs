@@ -1,4 +1,4 @@
-use crate::byte_format::ByteFormat;
+use crate::{byte_format::ByteFormat, package::Pkg};
 use std::{
     fmt::Display,
     io::{self, Read, Result, Write},
@@ -17,11 +17,15 @@ pub fn message(message: impl Display) {
     println!("\x1b[0m{message}\x1b[0m");
 }
 
-pub fn pkg(name: impl Display, size: u64) {
+pub fn size(name: impl Display, size: u64) {
     println!(
         "\x1b[0;1m{name} \x1b[0m(\x1b[32;1m{}\x1b[0m)\x1b[0m",
         ByteFormat(size),
     );
+}
+
+pub fn pkg(pkg: &Pkg) {
+    size(pkg.name(), pkg.size());
 }
 
 pub fn error(e: impl Display) {

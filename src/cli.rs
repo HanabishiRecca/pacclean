@@ -3,6 +3,7 @@ mod tests;
 
 use crate::types::{Arr, Str};
 
+#[derive(Default)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Config {
     dbpath: Option<Str>,
@@ -11,14 +12,6 @@ pub struct Config {
 }
 
 impl Config {
-    fn new() -> Self {
-        Config {
-            cachedir: None,
-            dbpath: None,
-            repos: None,
-        }
-    }
-
     pub fn cachedir(&self) -> Option<&str> {
         self.cachedir.as_deref()
     }
@@ -27,7 +20,7 @@ impl Config {
         self.dbpath.as_deref()
     }
 
-    pub fn repos(&self) -> Option<&[impl AsRef<str>]> {
+    pub fn repos(&self) -> Option<&[Str]> {
         self.repos.as_deref()
     }
 }
@@ -73,7 +66,7 @@ fn parse_list<'a, T: FromIterator<impl From<&'a str>>>(str: &'a str) -> T {
 }
 
 pub fn read_args(mut args: impl Iterator<Item = impl AsRef<str>>) -> Result<Option<Config>> {
-    let mut config = Config::new();
+    let mut config = Config::default();
 
     while let Some(arg) = args.next() {
         macro_rules! next {
@@ -100,9 +93,7 @@ pub fn read_args(mut args: impl Iterator<Item = impl AsRef<str>>) -> Result<Opti
             "--repos" => {
                 config.repos = Some(list!());
             }
-            "-h" | "--help" => {
-                return Ok(None);
-            }
+            "-h" | "--help" => return Ok(None),
             _ => E!(Unknown(F!(arg))),
         }
     }

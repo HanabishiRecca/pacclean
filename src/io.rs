@@ -1,9 +1,9 @@
 use crate::{
+    package::Pkg,
     print,
     types::{Arr, Str},
 };
 use std::{
-    collections::HashMap,
     fs::{self, DirEntry},
     io::{ErrorKind, Result},
     path::{self, PathBuf},
@@ -23,29 +23,23 @@ macro_rules! R {
     };
 }
 
-macro_rules! N {
+macro_rules! C {
     ($e: expr) => {
-        if $e {
+        if !$e {
             return None;
         }
     };
 }
 
-macro_rules! Y {
-    ($e: expr) => {
-        N!(!$e)
-    };
-}
-
 fn map_repos(entry: Result<DirEntry>) -> Option<Result<Str>> {
     let entry = R!(entry);
-    Y!(R!(entry.metadata()).is_file());
+    C!(R!(entry.metadata()).is_file());
 
     let mut name = entry.file_name().into_string().ok()?;
-    Y!(name.ends_with(DB_EXT));
+    C!(name.ends_with(DB_EXT));
 
     let len = name.len().checked_sub(DB_EXT.len())?;
-    Y!(len > 0);
+    C!(len > 0);
     name.truncate(len);
 
     Some(Ok(Str::from(name)))
@@ -57,20 +51,20 @@ pub fn find_repos(dbpath: &str) -> Result<Arr<Str>> {
         .collect()
 }
 
-fn map_pkgs(entry: Result<DirEntry>) -> Option<Result<(Str, u64)>> {
+fn map_pkgs(entry: Result<DirEntry>) -> Option<Result<Pkg>> {
     let entry = R!(entry);
     let name = Str::from(entry.file_name().into_string().ok()?);
 
     let meta = R!(entry.metadata());
-    Y!(meta.is_file());
+    C!(meta.is_file());
 
-    N!(name.ends_with(SIG_EXT));
-    Y!(name.contains(PKG_EXT));
+    C!(!name.ends_with(SIG_EXT));
+    C!(name.contains(PKG_EXT));
 
-    Some(Ok((name, meta.len())))
+    Some(Ok(Pkg::new(name, meta.len())))
 }
 
-pub fn get_cached_pkgs(cachedir: &str) -> Result<HashMap<Str, u64>> {
+pub fn get_cached_pkgs(cachedir: &str) -> Result<Arr<Pkg>> {
     fs::read_dir(cachedir)?.filter_map(map_pkgs).collect()
 }
 
@@ -82,8 +76,8 @@ fn remove_file(path: &str) {
     }
 }
 
-pub fn remove_pkg(cachedir: &str, name: &str) {
-    let mut path = String::from_iter([cachedir, path::MAIN_SEPARATOR_STR, name, SIG_EXT]);
+pub fn remove_pkg(cachedir: &str, pkg: &Pkg) {
+    let mut path = String::from_iter([cachedir, path::MAIN_SEPARATOR_STR, pkg.name(), SIG_EXT]);
     remove_file(&path);
 
     path.truncate(path.len() - SIG_EXT.len());
