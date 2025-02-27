@@ -27,12 +27,7 @@ fn load_dbs<'a>(alpm: &'a Alpm, repos: &[impl AsRef<str>]) -> Result<Arr<&'a Db>
 pub fn filter_pkgs(pkgs: Arr<Pkg>, dbpath: &str, repos: &[impl AsRef<str>]) -> Result<Arr<Pkg>> {
     let alpm = init(dbpath)?;
     let dbs = load_dbs(&alpm, repos)?;
-
-    let mut map: HashMap<_, _> = pkgs
-        .into_vec() // rust-lang/rust#59878
-        .into_iter()
-        .map(Pkg::into_hash)
-        .collect();
+    let mut map: HashMap<_, _> = pkgs.into_iter().map(Pkg::into_hash).collect();
 
     for db in dbs {
         for pkg in db.pkgs() {

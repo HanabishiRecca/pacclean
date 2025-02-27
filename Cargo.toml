@@ -1,7 +1,8 @@
 [package]
 name = "pacclean"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version = "1.85"
 description = "Arch 'pacman -Sc' with 'CleanMethod = KeepCurrent' analogue, but more verbose and faster."
 repository = "https://github.com/HanabishiRecca/pacclean"
 license = "MIT"
