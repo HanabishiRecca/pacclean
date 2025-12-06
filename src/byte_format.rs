@@ -20,11 +20,8 @@ impl Display for ByteFormat {
             n += 1;
         }
 
-        write!(
-            f,
-            "{} {}",
-            (result * 100.0).round() / 100.0,
-            UNITS.get(n).copied().unwrap_or("???")
-        )
+        let size = (result * 100.0).round() / 100.0;
+        let units = UNITS.get(n).copied().unwrap_or("???");
+        write!(f, "{size} {units}")
     }
 }

@@ -18,10 +18,7 @@ pub fn message(message: impl Display) {
 }
 
 pub fn size(name: impl Display, size: u64) {
-    println!(
-        "\x1b[0;1m{name} \x1b[0m(\x1b[32;1m{}\x1b[0m)\x1b[0m",
-        ByteFormat(size),
-    );
+    println!("\x1b[0;1m{name} \x1b[0m(\x1b[32;1m{}\x1b[0m)\x1b[0m", ByteFormat(size));
 }
 
 pub fn pkg(pkg: &Pkg) {

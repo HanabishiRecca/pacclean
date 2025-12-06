@@ -25,9 +25,7 @@ macro_rules! R {
 
 macro_rules! C {
     ($e: expr) => {
-        if !$e {
-            return None;
-        }
+        ($e).then_some(())?
     };
 }
 
@@ -46,9 +44,7 @@ fn map_repos(entry: Result<DirEntry>) -> Option<Result<Str>> {
 }
 
 pub fn find_repos(dbpath: &str) -> Result<Arr<Str>> {
-    fs::read_dir(PathBuf::from_iter([dbpath, DB_DIR]))?
-        .filter_map(map_repos)
-        .collect()
+    fs::read_dir(PathBuf::from_iter([dbpath, DB_DIR]))?.filter_map(map_repos).collect()
 }
 
 fn map_pkgs(entry: Result<DirEntry>) -> Option<Result<Pkg>> {

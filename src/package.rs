@@ -19,11 +19,11 @@ impl Pkg {
         self.size
     }
 
-    pub fn into_hash(self) -> (Str, u64) {
+    pub fn into_kv(self) -> (Str, u64) {
         (self.name, self.size)
     }
 
-    pub fn from_hash((name, size): (Str, u64)) -> Self {
+    pub fn from_kv((name, size): (Str, u64)) -> Self {
         Self::new(name, size)
     }
 }
