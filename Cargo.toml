@@ -9,5 +9,11 @@ license = "MIT"
 readme = "README.md"
 publish = false
 
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = true
+codegen-units = 1
+
 [dependencies]
 alpm = "4.0"
