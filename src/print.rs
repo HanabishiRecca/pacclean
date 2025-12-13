@@ -1,8 +1,18 @@
-use crate::{byte_format::ByteFormat, package::Pkg};
-use std::{
-    fmt::Display,
-    io::{self, Read, Result, Write},
-};
+use crate::byte_format::ByteFormat;
+use crate::package::Pkg;
+use std::env;
+use std::fmt::Display;
+use std::io::{self, Read, Result, Write};
+
+pub fn help() {
+    let bin = env::current_exe().ok();
+    println!(
+        include_str!("help.in"),
+        PKG = env!("CARGO_PKG_NAME"),
+        VER = env!("CARGO_PKG_VERSION"),
+        BIN_NAME = (|| bin.as_ref()?.file_name()?.to_str())().unwrap_or(env!("CARGO_BIN_NAME")),
+    );
+}
 
 pub fn request(message: impl Display) -> Result<bool> {
     print!("\x1b[34;1m::\x1b[0;1m {message} [Y/n] \x1b[0m");

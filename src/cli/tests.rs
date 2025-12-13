@@ -50,10 +50,10 @@ macro_rules! test_error {
 
 #[test]
 fn error_no_value() {
-    test_error!(["--dbpath"], Error::NoValue(_));
+    test_error!(["--dbpath"], CliError::NoValue(_));
 }
 
 #[test]
 fn error_unknown() {
-    test_error!(["--foo"], Error::Unknown(_));
+    test_error!(["--foo"], CliError::Unknown(_));
 }

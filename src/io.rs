@@ -1,13 +1,9 @@
-use crate::{
-    package::Pkg,
-    print,
-    types::{Arr, Str},
-};
-use std::{
-    fs::{self, DirEntry},
-    io::{ErrorKind, Result},
-    path::{self, PathBuf},
-};
+use crate::package::Pkg;
+use crate::print;
+use crate::types::{Arr, Str};
+use std::fs::{self, DirEntry};
+use std::io::{ErrorKind, Result};
+use std::path::{self, PathBuf};
 
 const DB_DIR: &str = "sync";
 const DB_EXT: &str = ".db";

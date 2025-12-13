@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests;
 
-use std::{error, fmt, result};
-
 use crate::types::{Arr, Str};
+use std::error::Error;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Default)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
@@ -28,16 +28,16 @@ impl Config {
 }
 
 #[derive(Debug)]
-pub enum Error {
+pub enum CliError {
     NoValue(Str),
     Unknown(Str),
 }
 
-impl error::Error for Error {}
+impl Error for CliError {}
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use Error::*;
+impl Display for CliError {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        use CliError::*;
         match self {
             NoValue(arg) => write!(f, "option '{arg}' requires value"),
             Unknown(arg) => write!(f, "unknown option '{arg}'"),
@@ -45,11 +45,9 @@ impl fmt::Display for Error {
     }
 }
 
-pub type Result<T> = result::Result<T, Error>;
-
 macro_rules! E {
     ($e: expr) => {{
-        use Error::*;
+        use CliError::*;
         return Err($e);
     }};
 }
@@ -64,7 +62,9 @@ fn parse_list<'a, T: FromIterator<impl From<&'a str>>>(str: &'a str) -> T {
     str.split(',').filter(|s| !s.is_empty()).map(From::from).collect()
 }
 
-pub fn read_args(mut args: impl Iterator<Item = impl AsRef<str>>) -> Result<Option<Config>> {
+pub fn read_args(
+    mut args: impl Iterator<Item = impl AsRef<str>>,
+) -> Result<Option<Config>, CliError> {
     let mut config = Config::default();
 
     while let Some(arg) = args.next() {

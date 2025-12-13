@@ -1,4 +1,6 @@
-use crate::{package::Pkg, print, types::Arr};
+use crate::package::Pkg;
+use crate::print;
+use crate::types::Arr;
 use alpm::{Alpm, AnyEvent, Db, Event, Result, SigLevel};
 use std::collections::HashMap;
 
