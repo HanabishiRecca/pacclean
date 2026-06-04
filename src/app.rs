@@ -2,6 +2,7 @@ use crate::{alpm, cli, io, print};
 use std::env;
 use std::error::Error;
 
+const DEFAULT_UNIQUE: bool = false;
 const DEFAULT_CACHEDIR: &str = "/var/cache/pacman/pkg";
 const DEFAULT_DBPATH: &str = "/var/lib/pacman";
 
@@ -21,11 +22,12 @@ pub fn run() -> Result<bool, Box<dyn Error>> {
 
     print::message("checking for outdated packages...");
 
+    let unique = default!(config.unique(), DEFAULT_UNIQUE);
     let cachedir = default!(config.cachedir(), DEFAULT_CACHEDIR);
     let dbpath = default!(config.dbpath(), DEFAULT_DBPATH);
     let repos = default!(config.repos(), &io::find_repos(dbpath)?);
 
-    let pkgs = alpm::filter_pkgs(io::get_cached_pkgs(cachedir)?, dbpath, repos)?;
+    let pkgs = alpm::filter_pkgs(io::get_cached_pkgs(cachedir)?, dbpath, repos, unique)?;
 
     if pkgs.is_empty() {
         print::message("no outdated packages");

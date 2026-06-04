@@ -7,6 +7,7 @@ Usage:
 
 Options:
 
+  [1m-u[0m, [1m--unique[0m             if package present in multiple repositories, keep only one newest version
       [1m--cachedir <path>[0m    alternate package cache location
       [1m--dbpath <path>[0m      alternate database location
       [1m--repos <names>[0m      override working repositories [1]

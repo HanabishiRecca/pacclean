@@ -8,12 +8,17 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 #[derive(Default)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Config {
+    unique: Option<bool>,
     dbpath: Option<Str>,
     cachedir: Option<Str>,
     repos: Option<Arr<Str>>,
 }
 
 impl Config {
+    pub fn unique(&self) -> Option<bool> {
+        self.unique
+    }
+
     pub fn cachedir(&self) -> Option<&str> {
         self.cachedir.as_deref()
     }
@@ -83,6 +88,9 @@ pub fn read_args(
         }
         match arg.as_ref() {
             "" => {}
+            "-u" | "--unique" => {
+                config.unique = Some(true);
+            }
             "--cachedir" => {
                 config.cachedir = Some(F!(next!()));
             }
