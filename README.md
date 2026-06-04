@@ -1,6 +1,6 @@
 # pacclean
 
-Arch `pacman -Sc` with `CleanMethod = KeepCurrent` analogue, but more verbose and faster.
+Arch `pacman -Sc` with `CleanMethod = KeepCurrent` analogue, but better and faster.
 
     $ pacclean
     checking for outdated packages...
@@ -19,6 +19,7 @@ Arch `pacman -Sc` with `CleanMethod = KeepCurrent` analogue, but more verbose an
 
 | Option              | Description                                                                                                    |
 | ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `-u`, `--unique`    | If package present in multiple repositories, keep only one newest version.                                     |
 | `--cachedir <path>` | Alternate package cache location. Default value is `/var/cache/pacman/pkg`.                                    |
 | `--dbpath <path>`   | Alternate database location. Default value is `/var/lib/pacman`.                                               |
 | `--repos <names>`   | Override working repositories. By default all repositories from `dbpath/sync` directory are used. <sup>1</sup> |
@@ -28,7 +29,7 @@ Arch `pacman -Sc` with `CleanMethod = KeepCurrent` analogue, but more verbose an
 
 ## Download
 
-You can download prebuilt binaries from [releases](https://github.com/HanabishiRecca/pacclean/releases) page.
+You can download prebuilt binaries from the [releases](https://github.com/HanabishiRecca/pacclean/releases) page.
 
 ## Building from the source
 
@@ -36,7 +37,7 @@ You can download prebuilt binaries from [releases](https://github.com/HanabishiR
 
 Install dependencies:
 
--   `libalpm`
+- `libalpm`
 
 Install Rust compiler and run:
 
