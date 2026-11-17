@@ -18,7 +18,7 @@ pub fn request(message: impl Display) -> Result<bool> {
     print!("\x1b[34;1m::\x1b[0;1m {message} [Y/n] \x1b[0m");
     io::stdout().flush()?;
     let mut buf = [0];
-    io::stdin().read_exact(buf.as_mut_slice())?;
+    let _ = io::stdin().read(buf.as_mut_slice());
     let [code] = buf;
     Ok(code == b'\n' || code == b'y' || code == b'Y')
 }
